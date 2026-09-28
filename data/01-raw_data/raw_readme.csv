@@ -1,0 +1,29 @@
+"Field Name / Item / Column name","Description / Definition","Comments / Examples"
+"#","Reference number",NA
+"Organization","Name of Organization",NA
+"Ward","Ward number (City of Toronto)",NA
+"Service Area","Area that the service is being provided","Example: Neighbourhood, Local, City-wide"
+"Total Number of Grants",NA,NA
+"Total Funding Amount","Dollars allocated",NA
+"AEHR","Access Equity and Human Rights",NA
+"CBIP","Culture Build Investment Program",NA
+"CCRF","Community Crisis Response Fund",NA
+"CLI","Community Legacy Initiatives",NA
+"CSI","Community Safety Investments",NA
+"CSP","Community Services Partnerships",NA
+"EG","Projects and Events Grants ( Events)",NA
+"FEST","Community Festivals & Special Events",NA
+"GSCM","Grants to Specialized Collection Museum",NA
+"HIF","Homeless Initative Fund",NA
+"INI","Identify & Impact",NA
+"LASO","Local Arts Service Organizations",NA
+"MCO","Major Cultural Organizations",NA
+"MUS","Museums",NA
+"NG","Neighbourhood Grants",NA
+"Other",NA,NA
+"PG","Projects and Events Grants ( Projects)",NA
+"REC","Community Recreation",NA
+"SDIP","Social Development Investment Program",NA
+"SNP","Student Nutrition Program",NA
+"TAC","Toronto Arts Council",NA
+"TAF","Toronto Atmopheric Fund",NA

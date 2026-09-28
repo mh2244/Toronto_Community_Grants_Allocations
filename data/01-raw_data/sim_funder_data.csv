@@ -1,0 +1,8 @@
+"funder_code","funder_full_name","total_grant_amount","category","num_app_periods","num_installments","funding_per_installment"
+1,"Funder_1",1000,"Environment",1,1,1000
+2,"Funder_2",2000,"Health",3,1,2000
+3,"Funder_3",1000,"Arts",2,1,1000
+4,"Funder_4",5000,"Indigenous",1,1,5000
+5,"Funder_5",15000,"Housing",4,1,15000
+6,"Funder_6",3000,"Heritage",1,1,3000
+7,"Funder_7",10000,"Community safety",1,2,5000

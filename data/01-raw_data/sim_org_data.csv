@@ -1,0 +1,15 @@
+"org_code","name","service_area","ward_number"
+1,"Organization_A","city",2
+2,"Organization_B","local",4
+3,"Organization_C","neighbourhood",5
+4,"Organization_D","city",6
+5,"Organization_E","local",7
+6,"Organization_F","neighbourhood",8
+7,"Organization_G","city",14
+8,"Organization_H","local",11
+9,"Organization_I","neighbourhood",12
+10,"Organization_J","city",13
+11,"Organization_K","local",9
+12,"Organization_L","neighbourhood",12
+13,"Organization_M","city",14
+14,"Organization_N","local",1

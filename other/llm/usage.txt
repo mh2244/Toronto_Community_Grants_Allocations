@@ -1,0 +1,185 @@
+LLM: Google Gemini 3.5 Flash-Lite
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Usage 1 - Asking how to select all columns strictly after a reference column:
+User: How can I use the pipe operator (R) and select all columns strictly after a specific column name? Please be concise. 
+
+LLM: To select all columns strictly after a specific column name (excluding the column itself and everything before it), use match() with a negative index in select():
+library(dplyr)
+df %>% 
+  select(-(1:match("your_col_name", names(.))))
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Usage 2 - Clarifying when to use validate vs. testthat:
+User: Can you please concisely explain when to use validate vs. testthat? 
+
+LLM: The choice between the two packages depends on whether you are testing code logic or data values:
+Use testthat for code correctness (unit testing). It tests whether R functions, scripts, or packages produce the expected outputs, handle errors properly, and behave as designed when given specific code inputs. Use validate for data quality control. It tests whether a dataset adheres to specific business rules, structural constraints, or value ranges (e.g., ensuring an age column is greater than zero or that a field contains no missing values).
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Usage 3 - Finding a function that will help count how many numbers there are in an entry:
+User: Is there a function that can count up the number of numbers in an entry? For example, if I have something like "4,5,6", the function should return 3. This function is going to be applied to a data frame column. Be concise. 
+
+LLM: Yes, you can use str_count() from the stringr package with a digit pattern to count the numbers in a column:
+library(stringr)
+
+# Returns 3 for "4,5,6"
+df <- df %>%
+  mutate(num_count = str_count(your_column, "\\d+"))
+
+User: What exactly does "\\d+" mean? 
+
+LLM: In regular expressions (and R strings), \\d+ breaks down into two parts:
+\\d: Matches any single digit (0 through 9). The double backslash (\\) is required in R to escape the backslash for the regex engine.
++: A quantifier meaning "one or more times".
+
+Combined Meaning
+
+\\d+ matches one or more consecutive digits treated as a single block.
+When used with str_count(), it counts how many separate sequences of numbers appear. For example:
+"4,5,6" contains three separate digit blocks (4, 5, and 6), so it returns 3.
+"123, 45" contains two digit blocks (123 and 45), so it returns 2.
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Usage 4 - Asking how to remove efficiently remove punctuation marks and spaces from a column:
+User: When using mutate() to create a new column from an old one, how can I remove all punctuation marks and spaces from the old column? For example, "West St.Peter' s " would become "WestStPeters". Please be concise. 
+
+LLM: To remove all punctuation marks and spaces from a column using mutate(), use str_replace_all() with a character class containing both punctuation ([[:punct:]]) and spaces:
+
+library(dplyr)
+library(stringr)
+
+df <- df %>%
+  mutate(new_column = str_replace_all(old_column, "[[:punct:] ]+", ""))
+
+User: What does the + sign do? 
+
+LLM: In regular expressions, the + sign is a quantifier that means "one or more". It tells the pattern-matching engine to look for one or more consecutive occurrences of whatever comes right before it.
+How it applies to your previous code:
+
+In [[:punct:] ]+:
+The brackets [[:punct:] ] define what to look for (punctuation or spaces).
+The + tells it: "If you see a cluster of these characters right next to each other (like multiple spaces or punctuation marks in a row), grab the whole cluster and treat it as a single block to be removed."
+Without the +, it would delete them one by one instead of sweeping away consecutive groups all at once.
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Usage 5 - Asking what function would be able to retrieve column indices based on a desired name in spite of potential typos.
+User: What function will return the column number of a desired column name? I am also concerned as the data I am looking at was inputted by hand, so exact matches may not work, so I might rely on keywords instead. 
+
+LLM: To find the column number of a specific name—especially when dealing with hand-inputted data and potential typos or partial matches—you can use different functions depending on your matching needs:
+1. For Keywords or Partial Matches (grep)
+
+If you want to find columns containing a keyword (handling variations or partial text), use grep():
+
+# Returns the column numbers where "keyword" appears in the name
+grep("keyword", names(df))
+
+Alternatively, using stringr: stringr::str_which(names(df), "keyword")
+
+2. For Approximate Matches / Typos (agrep)
+
+Since your data was inputted by hand, agrep() from base R is great because it handles minor spelling mistakes or typos using fuzzy matching:
+
+# Returns column numbers that closely match the keyword
+agrep("keyword", names(df), max.distance = 0.2)
+
+3. For Exact Matches
+
+If you need an exact match, use match() or which():
+
+# Returns a single column number for an exact match
+match("exact_col_name", names(df))
+# or
+which(names(df) == "exact_col_name")
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Usage 6 - Asking how to use str_replace_all() to add a space between upper and lowercase letters:
+User: How can I use str_replace_all() to add back a space between upper and lowercase letters?
+
+LLM: You can use str_replace_all() from stringr by matching a lowercase letter followed immediately by an uppercase letter using capture groups.
+
+Here is how you can insert a space between them: 
+
+library(dplyr)
+library(stringr)
+
+df <- df %>%
+  mutate(new_column = str_replace_all(old_column, "([a-z])([A-Z])", "\\1 \\2"))
+
+How it works:
+
+    ([a-z]): Group 1 matches any lowercase letter.
+    ([A-Z]): Group 2 matches any uppercase letter right after it.
+    "\\1 \\2": Replaces the match with Group 1, a space, and Group 2.
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Usage 7 - Asking for a rundown of ggplot for bar charts, line charts, and stacked bar charts:
+User: Can you please give me a very concise rundown of ggplot, specifically how to make bar charts, line charts, and stacked bar charts if I want to look at the proportional composition of something. I know the very basics but forgot things like changing the y-axis scale, alignment of labels along the x-axis, and things like that. 
+
+LLM: Here is your quick-reference cheat sheet for ggplot2 so you don't have to rack your brain trying to remember syntax.
+
+1. Standard Bar Chart (geom_col)
+
+Use geom_col() when you already have pre-summarized data (like totals per category).
+
+ggplot(df, aes(x = Category_Column, y = Value_Column)) +
+  geom_col(fill = "steelblue") +
+  theme_minimal()
+
+2. Line Chart (geom_line)
+
+Use geom_line() (and optional geom_point()) for trends over time.
+R
+
+ggplot(df, aes(x = Year_Column, y = Value_Column, color = Group_Column)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal()
+
+3. Proportional Stacked Bar Chart (100% Composition)
+
+Use position = "fill" to automatically convert bars to proportions (0 to 1), paired with scales::percent for the y-axis.
+
+ggplot(df, aes(x = Year_Column, y = Value_Column, fill = Category_Column)) +
+  geom_col(position = "fill") + # Forces bars to 100% proportions
+  scale_y_continuous(labels = scales::percent) + # Converts y-axis to %
+  scale_fill_brewer(palette = "Paired") +
+  theme_minimal()
+
+The Customization Reminders You Asked For
+
+    Rotating X-Axis Labels (so they don't overlap):
+    Add this inside theme():
+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+    Fixing Y-Axis Numbers (Commas instead of scientific notation):
+    Add this to your plot:
+    R
+
+    scale_y_continuous(labels = scales::label_comma())
+
+    Fixing Y-Axis Numbers (Percentages for proportional charts):
+    Add this to your plot:
+
+    scale_y_continuous(labels = scales::percent)
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Usage 8 - Asking how to keep the top 10 of a category while assigning the rest to an "Other" category:
+User: In a dataset, I want to keep the top 10 of a category and assign the rest to an "Other" category. How would I go about that as efficiently as possible? I tried to use slice() but it's not giving the results I want. 
+
+LLM: slice() isn't working because it filters or truncates rows rather than grouping the remaining items into a new category. The most efficient and idiomatic way to do this in R is using forcats::fct_lump_n() inside a mutate() function. It automatically keeps your top $N$ categories and pools everything else into an "Other" group without dropping your data rows.Here is how you do it: 
+
+library(dplyr)
+library(forcats)
+
+df_cleaned <- df |>
+  mutate(
+    my_category = fct_lump_n(
+      f = my_category, 
+      n = 10,                 # Keeps the top 10
+      w = numeric_value,      # Optional: weight by a numeric column instead of raw row count
+      other_level = "Other"   # Name of the grouped category
+    )
+  )
+
