@@ -42,11 +42,11 @@ ggplot(yearly_totals, aes(x=year)) +
   scale_y_continuous(labels = scales::label_comma()) +
   labs(title = "Total Grant Disbursements to Toronto Nonprofits by Year",
        x = "Year",
-       y = "Grant funding disbursed (CAD)",
+       y = "Amount (CAD)",
        color = "") +
   theme_minimal()
 
-#ggsave("other/charts/total_by_year.jpg")
+ggsave("other/charts/total_by_year.jpg")
 
 #### Chart 2: Total Grant Disbursments by Ward ####
 
@@ -76,7 +76,7 @@ ggplot(ward_top10_funds, aes(x = Ward.Name, y = Total_Real, fill = Full.Name.Fin
     legend.position = "right"
   )
 
-#ggsave("other/charts/grant_disbursement_by_ward.jpg")
+ggsave("other/charts/grant_disbursement_by_ward.jpg")
 
 #### Chart 3: Grant Disbursements to Top 5 low-income wards vs. high-income ####
 ward_low <- data |> 
@@ -86,8 +86,8 @@ ward_low <- data |>
             Real = sum(infl_adj_funding),
             .groups = "drop") |>
   filter(ward_number %in% pc_low_income_ref$ward[c(1:5, 20:24)]) |>
-  mutate(group = if_else(ward_number %in% pc_low_income_ref$ward[1:5], "Top 5 Highest % of Low-Income Residents", 
-                         "Top 5 Lowest % of Low-Income Residents"))
+  mutate(group = if_else(ward_number %in% pc_low_income_ref$ward[1:5], "Top 5 Highest % of LIM-AT Households", 
+                         "Top 5 Lowest % of LIM-AT Households"))
 
 ggplot(ward_low, aes(x = year, group = group, color = group)) +
   stat_summary(aes(y = Nominal), fun = mean, geom = "line", size = 1) +
@@ -95,17 +95,16 @@ ggplot(ward_low, aes(x = year, group = group, color = group)) +
   stat_summary(aes(y = Real), fun = mean, geom = "line", size = 1, linetype = "dashed") +
   stat_summary(aes(y = Real), fun = mean, geom = "point", size = 2, shape = 17) +
   scale_y_continuous(labels = scales::label_comma()) +
-  # labels and formatting
   labs(
     title = "Real (Dashed) vs. Nominal (Solid) Total Grant Disbursements by Year",
-    subtitle = "Grouped by Top 5 Wards with Highest vs. Lowest % of Low-Income Residents",
+    subtitle = "Grouped by Top 5 Wards with Highest vs. Lowest % of LIM-AT Households",
     x = "Year",
     y = "Amount (CAD)",
     color = "Group"
   ) +
   theme_minimal()
 
-#ggsave("other/charts/grant_disbursement_top5.jpg")
+ggsave("other/charts/grant_disbursement_top5.jpg")
 
 #### Chart 4: Examining disbursements by top 10 nonprofits ####
 org_totals <- data |> group_by(organization) |>
@@ -126,7 +125,7 @@ ggplot(org_totals, aes(x=organization, y = real_total)) +
     axis.text.x = element_text(angle=45, hjust = 1)
   )
 
-#ggsave("other/charts/top_10_nonprofits.jpg")
+ggsave("other/charts/top_10_nonprofits.jpg")
 
 #### Chart 5: Examining proportion of funding top 10 programs occupy per year ####
 # There are many grant programs. Focus on the top 10 and group other funds into "Other Funds" category
@@ -138,9 +137,9 @@ year_fund_prop <- data |>
 
 # Create the stacked bar chart.
 ggplot(year_fund_prop, aes(x = factor(year), y = Total_Real, fill = Full.Name.Final)) +
-  geom_col(position = "fill") + # normalize to 100%
+  geom_col(position = "fill") + 
   scale_fill_brewer(palette = "Set3") +
-  scale_y_continuous(labels = scales::percent) + # turn y-axis into %
+  scale_y_continuous(labels = scales::percent) + 
   labs(
     title = "Proportional Composition of Grant Programs by Year",
     x = "Year",
@@ -153,7 +152,7 @@ ggplot(year_fund_prop, aes(x = factor(year), y = Total_Real, fill = Full.Name.Fi
     legend.position = "right"
   )
 
-#ggsave("other/charts/prop_composition.jpg")
+ggsave("other/charts/prop_composition.jpg")
 
 
 #### Chart 5: Examining proportion of funding top 10 programs occupy per year ####
@@ -166,9 +165,9 @@ ward_fund_prop <- data |>
 
 # Create the stacked bar chart.
 ggplot(ward_fund_prop, aes(x = factor(year), y = Total_Real, fill = Ward.Name)) +
-  geom_col(position = "fill") + # normalize to 100%
+  geom_col(position = "fill") + 
   scale_fill_brewer(palette = "Set3") +
-  scale_y_continuous(labels = scales::percent) + # turn y-axis into %
+  scale_y_continuous(labels = scales::percent) + 
   labs(
     title = "Proportional Composition of Annual Grant Disbursement by Ward",
     x = "Year",
@@ -181,4 +180,4 @@ ggplot(ward_fund_prop, aes(x = factor(year), y = Total_Real, fill = Ward.Name)) 
     legend.position = "right"
   )
 
-#ggsave("other/charts/prop_composition_ward.jpg")
+ggsave("other/charts/prop_composition_ward.jpg")

@@ -183,3 +183,47 @@ df_cleaned <- df |>
     )
   )
 
+--------------------------------------------------------------------------------------------------------------------------------------
+Usage 9 - Asking for formatting help as wide-format tables are getting cut off when rendering .qmd file.
+User:  My table is in wide format but gets cut off when I render the document. Is there a way to ensure that it fits the page? Please be concise. 
+
+#| label: tbl-raw2010
+#| tbl-cap: "2010 Community Grants Allocation Data"
+#| warning: false
+#| out-width: "70%"
+
+raw_2010 <- read.csv(file="../data/01-raw_data/raw_data_2010.csv", header = TRUE)
+raw_2010 <- raw_2010 |> slice(1) |> select(-year)
+tt(raw_2010)
+
+LLM: To fix a wide table that gets cut off when rendering, try one of these approaches depending on your output format:
+
+1. Reshape the Data (Recommended)
+If possible, convert the wide table into a long format using tidyr::pivot_longer() so it flows vertically down the page rather than horizontally across.
+
+2. For PDF Output (Landscape Mode)
+
+Add the tbl-orientation chunk option to rotate the page:
+Markdown
+
+#| tbl-orientation: sideways
+
+3. For HTML Output (Scrollable Table)
+
+Wrap the table or use Quarto's column span options (e.g., #| tbl-column: page-right) to allow the table to span the full margin width.
+
+User: Is it possible to add an ellipses or something to indicate that I'm not showing the middle x number of columns? 
+
+LLM: Yes, you can do this by manually subsetting your data frame in R to keep only the first and last few columns, and inserting an ellipsis column (...) in between.
+
+library(dplyr)
+
+# Keep the first 2 columns, add an ellipsis, and keep the last 2 columns
+raw_2010_trimmed <- raw_2010 |> 
+  select(1:2) |> 
+  mutate(`...` = "...") |> 
+  bind_cols(raw_2010 |> select((ncol(raw_2010) - 1):ncol(raw_2010)))
+
+tt(raw_2010_trimmed)
+
+Adjust the indices (1:2 and the final columns) depending on how many columns you want to display on either side.
