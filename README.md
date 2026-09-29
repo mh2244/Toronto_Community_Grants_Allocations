@@ -5,7 +5,7 @@ This project explores trends in grant disbursements approved through the City of
 
 ## File Structure
 The repository is structured as follows:
-- `data/raw_data`: Contains datasets downloaded from Open Data Toronto.
+- `data/raw_data`: Contains datasets downloaded from Open Data Toronto and simulated data.
 - `data/analysis_data`: Contains datasets used in data analysis and testing cleaned data.
 - `paper`: Contains the Quarto file, references, and final PDF.
 - `scripts`: Contains R scripts used for downloading, cleaning, simulating, testing, and generating reference tables as well as charts.
