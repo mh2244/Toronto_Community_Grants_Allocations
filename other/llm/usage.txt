@@ -227,3 +227,40 @@ raw_2010_trimmed <- raw_2010 |>
 tt(raw_2010_trimmed)
 
 Adjust the indices (1:2 and the final columns) depending on how many columns you want to display on either side.
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Usage 10: Asking for help when plotting chart comparing top 5 wards with highest vs. lowest %s of LIM-AT households:
+User: On ggplot(), I'm plotting 2 groups: 5 wards with the highest % of low-income households, and 5 wards with the lowest % of low-income households. Specifically, I'm comparing how much grant funding they receive over a time period and will be plotting both nominal vs. real amounts, so I'll be using a line chart. Is there something I can use that is similar to summarise() but for graphs? Please be concise.
+
+LLM: You can use stat_summary() to calculate and plot aggregated values (like means or sums) directly inside a ggplot layer.
+
+However, for line charts showing total grant funding over time, it is usually cleanest to use dplyr::summarise() beforehand:
+
+library(tidyverse)
+
+data %>%
+  group_by(ward_group, year) %>%
+  summarise(total_funding = sum(funding, na.rm = TRUE), .groups = "drop") %>%
+  ggplot(aes(x = year, y = total_funding, color = ward_group)) +
+  geom_line() +
+  geom_point()
+
+User:  How would I use stat_summary()?
+
+LLM: To use stat_summary() directly on your raw data, you tell ggplot which function to apply (e.g., sum or mean) and how to draw it (e.g., line or point).
+
+Here is how you would write it for your line chart:
+
+library(ggplot2)
+
+ggplot(data, aes(x = year, y = funding, color = ward_group)) +
+  stat_summary(fun = "sum", geom = "line", linewidth = 1) +
+  stat_summary(fun = "sum", geom = "point", size = 2)
+
+Key Arguments
+
+    fun = "sum": Tells ggplot to calculate the total sum of funding for each combination of year and ward_group (by default, stat_summary calculates the mean). You can also use "mean", "median", etc.
+
+    geom = "line": Tells ggplot to render the calculated summaries as a connected line path instead of standard error bars or points.
+
+    Note: While stat_summary() is convenient, using dplyr::summarise() beforehand (as shown in the previous response) is usually faster and less prone to rendering quirks if your dataset is very large.
