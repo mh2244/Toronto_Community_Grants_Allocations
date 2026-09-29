@@ -1,7 +1,7 @@
 # Analysis of the City of Toronto's Community Grant Allocations from 2010-2025
 
 ## Overview of Project
-This project explores trends in grant disbursements released through the City of Toronto's Community Partnership Investment Program (CPIP) from 2010-2025 using datasets from Open Data Toronto.
+This project explores trends in grant disbursements approved through the City of Toronto's Community Partnership Investment Program (CPIP) from 2010-2025 using datasets from Open Data Toronto.
 
 ## File Structure
 The repository is structured as follows:
