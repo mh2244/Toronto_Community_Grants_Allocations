@@ -1,5 +1,5 @@
 #### Preamble ####
-# Purpose: Generates plots from cleaned dataset of Toronto's grant allocations.
+# Purpose: Generates plots from cleaned dataset of community grant allocations data.
 # Author: Maggie Huang
 # Date: 28 September 2026
 # Contact: maggieh.huang@mail.utoronto.ca

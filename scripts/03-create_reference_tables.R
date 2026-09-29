@@ -1,10 +1,10 @@
 #### Preamble ####
-# Purpose: Downloads Community Grant Allocations data and saves the data from Open Data Toronto.
+# Purpose: Creates reference tables for organizations and grant programs
 # Author: Maggie Huang
 # Date: 28 September 2026
 # Contact: maggieh.huang@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: Run script 02-download_data first. 
+# Pre-requisites: Run script 02-download_data.R first. 
 # Any other information needed? N/A
 
 #### Workspace setup ####
@@ -15,7 +15,7 @@ library(dplyr)
 # Functions
 
 # As data was inputted by hand, many datasets include extra information at the bottom of the table
-# This function will find the first row in which this information appears
+# This function will find the first row in which this information appears. We want to remove it.
 keep_orgs_only <- function(df, id = "id"){
   split_index <- min(which(is.na(df[[id]]))) - 1
   return(split_index)
@@ -25,6 +25,7 @@ keep_orgs_only <- function(df, id = "id"){
 
 # Some grants from earlier years are no longer funded and so are difficult to find on the City of Toronto site
 # I created a table to identify these older grants and their full names
+# If I can't match them, will assign to an Uncategorized group later on.
 other_funds_ref <- tibble(
   Funding.Program = c("APCIP", "CCC", "CFSE", "DPCIP", "ENF","FSIP", "HER","StrArts", "StART", "MNR", "MJR", "GameOn", "SNOW"),
   Full.Name = c("AIDS Prevention Community Investment Program", "Competitiveness, Creativity and Collaboration", 
@@ -59,6 +60,8 @@ legend_2021 <- read.csv(file="data/01-raw_data/raw_legend_2021.csv", header = TR
 legend_2020 <- read.csv(file="data/01-raw_data/raw_legend_2020.csv", header = TRUE)
 legend_2019 <- read.csv(file="data/01-raw_data/raw_legend_2019.csv", header = TRUE)
 legend_2018 <- read.csv(file="data/01-raw_data/raw_legend_2018.csv", header = TRUE)
+
+# Remove the terms which aren't needed from legend files.
 all_legends_18_21 <- rbind(legend_2021, legend_2020, legend_2019, legend_2018) |> select(-c(Comments...Examples)) |> 
   distinct() |> rename(Funding.Program = Field.Name...Item...Column.name, Full.Name = Description...Definition) |>
   filter((!is.na(Funding.Program)) & !grepl("Total|Local|City|Neighbourhood|Other|Service|Organization|Ward|NOTE|#", Funding.Program))
@@ -69,7 +72,8 @@ all_legends_18_21 <- rbind(legend_2021, legend_2020, legend_2019, legend_2018) |
 
 # Some datasets' Ward entries have asterisks to indicate differences in mailing vs. service locations
 # However, this is not an issue as the service location is listed. Thus, use parse_number to extract the ward number
-# Remove duplicates and NA values with keep_orgs_only function
+# Remove unnecessary rows with keep_orgs_only function
+# Ward number needs to be numeric for matching later
 unique_orgs_2010 <- raw_2010 |> select(Organization, Ward, Service.Area, year) |> distinct() |> 
   slice(1:keep_orgs_only(raw_2010, id = "...1")) |> mutate(Ward = parse_number(Ward))
 unique_orgs_2011 <- raw_2011 |> select(Organization, Ward, Service.Area, year) |> distinct() |>
@@ -84,23 +88,25 @@ unique_orgs_2015 <- raw_2015 |> select(Organization, Ward, Service.Area, year) |
   slice(1:keep_orgs_only(raw_2015, id = "Ward")) |> mutate(Ward = as.numeric(Ward))
 unique_orgs_2016 <- raw_2016 |> select(Organization, Ward, Service.Area, year) |> distinct() |>
   slice(1:keep_orgs_only(raw_2016, id = "X.")) |> mutate(Ward = as.numeric(Ward))
+
 # Some organizations have multiple locations, so their entry under "Ward" is a series of numbers 
 # Separate them into rows, then convert the column into a numeric one
 unique_orgs_2017 <- raw_2017 |> select(Organization, Ward, Service.Area, year) |>
   separate_rows(Ward, sep=",") |> mutate(Ward = as.numeric(Ward)) |> distinct() 
-# long formats
+
+# Long format datasets
 unique_orgs_2018 <- raw_2018 |> select(Organization, Ward, Service.Area, year) |> distinct() 
 
 unique_orgs_2019 <- raw_2019 |> select(Organization, Ward, Service.Area, year) |> distinct() |> 
-  separate_rows(Ward, sep=",") |> mutate(Ward = as.numeric(Ward)) # multiple wards
+  separate_rows(Ward, sep=",") |> mutate(Ward = as.numeric(Ward)) # Separate multiple wards
 
 unique_orgs_2020 <- raw_2020 |> select(Organization, Ward, Service.Area, year) |> distinct() |> 
-  separate_rows(Ward, sep=",") |> mutate(Ward = as.numeric(Ward)) # multiple wards
+  separate_rows(Ward, sep=",") |> mutate(Ward = as.numeric(Ward)) # Separate multiple wards
 
 unique_orgs_2020_addon <- raw_2020_addon |> select(Organization, Ward, Service.Area, year) |> distinct()
 
 unique_orgs_2021 <- raw_2021 |> select(Organization, Ward, Service.Area, year) |> distinct() |>
-  separate_rows(Ward, sep=",") |> mutate(Ward = as.numeric(Ward)) # multiple wards
+  separate_rows(Ward, sep=",") |> mutate(Ward = as.numeric(Ward)) # Separate multiple wards
 
 unique_orgs_2022_25 <- raw_2022_to_2025 |> select(Organization, Ward, Service.Area, date_from_filename) |> 
   rename(year = date_from_filename) |> distinct() |> separate_rows(Ward, sep=",") |>
@@ -125,7 +131,7 @@ combined_orgs_p1 <- bind_rows(unique_orgs_2010, unique_orgs_2011, unique_orgs_20
 # After 2017, I will be able to see what ward the non-profit was rezoned to and can update the master table accordingly
 all_orgs <- bind_rows(combined_orgs_p1, unique_orgs_2022_25) |> arrange(desc(Organization)) |>
   filter(!is.na(Ward.Name)) |> filter(!is.na(Ward)) |> mutate(service.area = tolower(str_remove_all(Service.Area, " "))) |> 
-  mutate(
+  mutate( # Standardize service area. May use this to help with matching later.
     service.area = gsub("citywide|city-wide|ciry-wide", "city", service.area),
     service.area = gsub("areaservices|area-services|etobicokeandscarborough|areaservice", "local",service.area),
     service.area = gsub("neighborhood", "neighbourhood", service.area)) |>
@@ -133,7 +139,7 @@ all_orgs <- bind_rows(combined_orgs_p1, unique_orgs_2022_25) |> arrange(desc(Org
 
 #### Create master table for grant programs and funders ####
 
-# 2022-25 is unique since an additional "Division" cateogry is provided
+# 2022-25 is unique since an additional "Division" category is provided
 # Get the grant programs from each year
 unique_funds_2022_25 <- raw_2022_to_2025 |> select(Funding.Program, Division, date_from_filename) |> 
   distinct() |> rename(year = date_from_filename)
@@ -145,11 +151,11 @@ unique_funds_2018 <- raw_2018 |> select(Funder, year) |> distinct()
 
 # Wide format tables, which need to be converted into long format
 # Tables 2010-2017 give each grant its own column
-# However, I want a single column which lists all the grants a nonprofit applied to
+# However, I want a single column which lists all the grants a nonprofit applied to.
 unique_funds_2010 <- colnames(raw_2010 |> select(-(1:match("Total.Allocations", names(raw_2010))))|> select(-"year")) |>
   tibble() |> rename("Funding.Program" = "colnames(...)") |> mutate(Full.Name = NA, year = 2010)
 
-# figure out how to get only col names?
+# Only get the columns that have grant program codes
 unique_funds_2011 <- colnames(raw_2011 |> select(-(1:match("Total.Allocations", names(raw_2011)))) |> select(-"year")) |>
   tibble() |> rename("Funding.Program" = "colnames(...)") |> mutate(Full.Name = NA, year = 2011)
 unique_funds_2012 <- colnames(raw_2012 |> select(-(1:match("Total.Allocations", names(raw_2012)))) |> select(-"year")) |>
@@ -170,8 +176,7 @@ unique_funds_10_17 <- rbind(unique_funds_2010, unique_funds_2011, unique_funds_2
                             unique_funds_2014, unique_funds_2015, unique_funds_2016, unique_funds_2017) |> 
   distinct()
 
-# Add grant program data from 2018-2021. While I did research and tried to match any missing grant program acronyms with their full equivalents, 
-  # this was not always possible, and so any program I was not able to verify was removed.
+# Add grant program data from 2018-2021. For grant programs that I couldn't match, I will do a manual search.
 all_funds_10_21 <- rbind(unique_funds_10_17, all_legends_18_21) |> arrange(desc(Funding.Program)) |> 
   left_join(other_funds_ref, by = "Funding.Program") |> 
   mutate(Full.Name.Final = coalesce(Full.Name.x, Full.Name.y)) |> select(-c(Full.Name.x, Full.Name.y, year)) |>

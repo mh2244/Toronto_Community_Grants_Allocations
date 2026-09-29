@@ -15,7 +15,7 @@ library(dplyr)
 #### Download data ####
 
 # Download reference table of Toronto's 25-ward system
-# From 2010-2017, datasets used either the 44- or 47-ward system
+# From 2010-2017, datasets used an older ward system with 40+ wards
 # From 2018 onwards, the 25-ward system was used
 # This reference table will be used to update and streamline ward numbers and names from older datasets
 ward_sys_search <- search_packages("ward profiles")
@@ -33,7 +33,7 @@ resources <- list_package_resources(dataset_id)
   # In multisheet files, the first contains the desired data, while the second contains legends or extra information explaining codes/acronyms used.
 # 'Year' columns were added for organization purposes
 # In addition, datasets 2018-2025 are in long format. Years 2022-2025 are saved in the same dataset
-# Datasets 2010-2017 are in wide format
+# Datasets 2010-2017 are in wide format. These will be converted to long format, since I want to analyze trends overtime and long format is better suited for that.
 cga2021 <- get_resource("bb31a820-f516-4abb-8ac2-e24f9f300a9a")[[1]] |>
   mutate(year = "2021")
 cga2021_legend <- get_resource("bb31a820-f516-4abb-8ac2-e24f9f300a9a")[[2]] |>

@@ -4,16 +4,15 @@
 # Date: 28 September 2026
 # Contact: maggieh.huang@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: Run scripts 00, 01, and 02.
+# Pre-requisites: Download data and create reference tables.
 # Any other information needed? N/A
 
 #### Workspace setup ####
 library(tidyverse)
 library(dplyr)
 library(readr)
-library(priceR) # cite this
+library(priceR) 
 
-# next thing to do is to standardize the service areas.
 split_index <- NA
 split_index_check <- NA
 
@@ -22,7 +21,7 @@ wide_to_long <- function(start_col, row_num, raw_data){
   i <- row_num
   grants_won_index <- which(!is.na(raw_data[i,(start_col+1):(ncol(raw_data)-1)])) + start_col
   store_grant_names <- names(raw_data)[grants_won_index] 
-  store_grant_amount <- unlist(raw_data[i, grants_won_index], use.names = FALSE) # orignally DF, make it vector unlist()
+  store_grant_amount <- unlist(raw_data[i, grants_won_index], use.names = FALSE) # Originally a dataframe, use unlist()
   # Order is preserved so set use.names to false
   entry_length <- length(grants_won_index)
                       
@@ -89,12 +88,12 @@ clean_2020 <- init_clean_df()
 clean_2021 <- init_clean_df()
 clean_2022_2025 <- init_clean_df()
 
-# reference
+# Reference simulated data if I need to
 raw_sim <- read.csv(file="data/01-raw_data/raw_sim_data.csv", header = TRUE)
 
 #### Data wrangling ####
 
-# Cut off rows containing extra information. Reference col varies. Used whichever one was most consistent.
+# Cut off rows containing extra information. Reference column varies. Used whichever one was most consistent.
 keep_orgs_2010 <- raw_2010 |> slice(1:split_df(raw_2010, id = "...1")) |> mutate(Ward = parse_number(Ward))
 keep_orgs_2011 <- raw_2011 |>  slice(1:split_df(raw_2011, id = "X.")) |> mutate(Ward = parse_number(Ward))
 keep_orgs_2012 <- raw_2012 |>  slice(1:split_df(raw_2012, id = "Ward")) |> mutate(Ward = as.numeric(Ward))
@@ -117,7 +116,7 @@ index_2017 <- grep("total.funding.amount", tolower(names(keep_orgs_2017)))
 index_10_17 <- c(index_2010, index_2011, index_2012, index_2013, index_2014, index_2015,
                  index_2016, index_2017)
 
-# Now turn all wide formatted tables into long formatted tables.
+# Turn all wide formatted tables into long formatted tables.
 for (row_num in 1:nrow(keep_orgs_2010)){
   entry <- wide_to_long(index_2010, row_num, keep_orgs_2010)
   clean_2010 <- rbind(clean_2010, entry)
@@ -158,26 +157,26 @@ for (row_num in 1:nrow(keep_orgs_2017)){
   clean_2017 <- rbind(clean_2017, entry)
 }
 
-# long datasets
+# Long datasets
 join_2018 <- raw_2018 |> select(year, Organization, Service.Area, Ward, Total.Funding.Amount, Funder) |> 
   rename(organization = Organization, service_area = Service.Area, ward_number = Ward,
                                           grant_amount = Total.Funding.Amount, grant_code = Funder) |> 
   mutate(ward_number = as.numeric(ward_number))
-# tibble initialized with correct variable types, acts as a check.
+# Tibble initialized with correct variable types, also acts as a check.
 clean_2018 <- rbind(clean_2018, join_2018)
 
 # Datasets 2019-2025 list multiple ward numbers under the Ward column
 # This is problematic as it is a character() col instead of numeric
 # I won't be able to map the Ward name easily unless it is numeric
-# I can separate by comma but then grant amount is copied
-# When aggregating total grant $ this means more $$ than actually given.
-# So need to divide
+# I can separate by comma but then grant amount is copied as new rows are created
+# When aggregating total grant funding this means grant funding will be inflated
+# So I will need to divide by number of ward numbers in the ward number column
 count_wards <- function(df, col="Ward"){
   count <- str_count(col, "\\d+")
   return(count)
 }
 
-# make a function that counts how many #s in ward then divides, so total no messed up
+# Make a function that counts how many #s in ward then divides by number of wards, so total stays consistent
 join_2019 <- raw_2019 |> select(year, Organization, Service.Area, Ward, Total.Funding.Amount, Funder..Funding.Program) |> 
   mutate(Total.Funding.Amount = (Total.Funding.Amount/str_count(Ward, "\\d+"))) |> 
   rename(organization = Organization, service_area = Service.Area, ward_number = Ward,
@@ -202,7 +201,7 @@ join_2021 <- raw_2021 |> select(year, Organization, Service.Area, Ward, Total.Fu
   separate_rows(ward_number, sep=",") |> mutate(ward_number = as.numeric(ward_number))
 clean_2021 <- rbind(clean_2021, join_2021)
 
-# get rid of "None" entries in grant amts
+# Get rid of "None" entries in grant amounts
 join_22_25 <- raw_2022_to_2025 |> select(date_from_filename, Organization, Service.Area, Ward, Total.Funding.Amount, Funding.Program) |> 
   rename(year= date_from_filename, organization = Organization, service_area = Service.Area, grant_amount = Total.Funding.Amount, grant_code = Funding.Program, ward_name = Ward) |>
   mutate(grant_amount = as.numeric(str_replace_all(grant_amount, "[^0-9.]", ""))) |>
@@ -216,6 +215,7 @@ join_22_25 <- raw_2022_to_2025 |> select(date_from_filename, Organization, Servi
 clean_2022_2025 <- rbind(clean_2022_2025, join_22_25)
 
 # Clean up the service areas, and the organizations.
+# Use reference tables and match entries.
 clean_all_years <- init_clean_df()
 clean_all_years <- rbind(clean_all_years, clean_2010, clean_2011,
                          clean_2012, clean_2013, clean_2014, clean_2015,
